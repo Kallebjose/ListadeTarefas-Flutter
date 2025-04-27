@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(MyApp());
@@ -10,7 +11,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Lista de Tarefas',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
       home: TodoList(),
     );
@@ -20,12 +21,34 @@ class MyApp extends StatelessWidget {
 class TodoList extends StatefulWidget {
   @override
   _TodoListState createState() => _TodoListState();
+
+
 }
 
 class _TodoListState extends State<TodoList> {
   final List<String> _tasks = [];
-
   final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    loadTasks();
+  }
+
+  void loadTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? savedTasks = prefs.getStringList('tasks');
+    if (savedTasks != null) {
+      setState(() {
+        _tasks.addAll(savedTasks);
+      });
+    }
+  }
+
+  void _saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('tasks', _tasks);
+  }
 
   void _addTask() {
     setState(() {
@@ -34,12 +57,14 @@ class _TodoListState extends State<TodoList> {
         _controller.clear();
       }
     });
+    _saveTasks();
   }
 
   void _removeTask(int index) {
     setState(() {
       _tasks.removeAt(index);
     });
+    _saveTasks();
   }
 
   @override
