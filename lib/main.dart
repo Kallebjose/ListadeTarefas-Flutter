@@ -21,8 +21,6 @@ class MyApp extends StatelessWidget {
 class TodoList extends StatefulWidget {
   @override
   _TodoListState createState() => _TodoListState();
-
-
 }
 
 class _TodoListState extends State<TodoList> {
@@ -61,10 +59,66 @@ class _TodoListState extends State<TodoList> {
   }
 
   void _removeTask(int index) {
-    setState(() {
-      _tasks.removeAt(index);
-    });
-    _saveTasks();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirmar exclusão'),
+        content: Text('Tem certeza que deseja excluir esta tarefa?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _tasks.removeAt(index);
+              });
+              _saveTasks();
+              Navigator.of(context).pop();
+            },
+            child: Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  void _editTask(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController editController = TextEditingController(text: _tasks[index]);
+        return AlertDialog(
+          title: Text('Editar Tarefa'),
+          content: TextField(
+            controller: editController,
+            decoration: InputDecoration(labelText: 'Nova descrição'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _tasks[index] = editController.text;
+                });
+                _saveTasks();
+                Navigator.of(context).pop();
+              },
+              child: Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -91,10 +145,20 @@ class _TodoListState extends State<TodoList> {
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text(_tasks[index]),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () => _removeTask(index),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () => _editTask(index),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () => _removeTask(index),
+                        ),
+                      ],
                     ),
+                    onTap: () => _editTask(index),
                   );
                 },
               ),
