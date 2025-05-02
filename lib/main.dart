@@ -5,20 +5,39 @@ void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _isDarkTheme = false;
+
+  void _toggleTheme() {
+    setState(() {
+      _isDarkTheme = !_isDarkTheme;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Lista de Tarefas',
+      themeMode: _isDarkTheme ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         primarySwatch: Colors.red,
+        brightness: Brightness.light,
       ),
-      home: TodoList(),
+      darkTheme: ThemeData.dark(),
+      home: TodoList(onToggleTheme: _toggleTheme),
     );
   }
 }
-
 class TodoList extends StatefulWidget {
+  final VoidCallback onToggleTheme;
+
+  TodoList({required this.onToggleTheme});
+
   @override
   _TodoListState createState() => _TodoListState();
 }
@@ -27,7 +46,7 @@ class _TodoListState extends State<TodoList> {
   final List<String> _tasks = [];
   final TextEditingController _controller = TextEditingController();
   final List<bool> _completed = [];
-
+  bool _isDarkTheme = false;
   @override
   void initState() {
     super.initState();
@@ -65,8 +84,9 @@ class _TodoListState extends State<TodoList> {
   }
   void _addTask() {
     setState(() {
-      if (_controller.text.isNotEmpty) {
-        _tasks.add(_controller.text);
+      final String taskText = _controller.text.trim();
+      if (taskText.isNotEmpty) {
+        _tasks.add(taskText);
         _completed.add(false);
         _controller.clear();
       }
@@ -145,6 +165,12 @@ class _TodoListState extends State<TodoList> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Lista de Tarefas'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.brightness_6),
+            onPressed: widget.onToggleTheme,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
