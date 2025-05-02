@@ -44,8 +44,14 @@ class _TodoListState extends State<TodoList> {
       final List<String>? savedCompleted = prefs.getStringList('completed');
       if (savedCompleted != null) {
         setState(() {
+          _tasks.clear();
+          _tasks.addAll(savedTasks);
           _completed.clear();  // Limpar a lista de estados
-          _completed.addAll(savedCompleted.map((e) => e == 'true').toList()); // Converte 'true'/'false' para boolean
+          if (savedCompleted != null && savedCompleted.length == savedTasks.length) {
+            _completed.addAll(savedCompleted.map((e) => e == 'true'));
+          } else {
+            _completed.addAll(List.filled(savedTasks.length, false));
+          }
         });
     }
       }
@@ -57,7 +63,6 @@ class _TodoListState extends State<TodoList> {
     List<String> completedStrings = _completed.map((e) => e ? 'true' : 'false').toList();
     await prefs.setStringList('completed', completedStrings);
   }
-
   void _addTask() {
     setState(() {
       if (_controller.text.isNotEmpty) {
@@ -67,6 +72,9 @@ class _TodoListState extends State<TodoList> {
       }
     });
     _saveTasks();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Tarefa adicionada com sucesso!')),
+    );
   }
 
   void _removeTask(int index) {
